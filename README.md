@@ -1,0 +1,2 @@
+# typingTrainerFastApi
+Тренажер слепого ввода
