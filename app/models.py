@@ -26,6 +26,7 @@ class TypingSession(SQLModel, table=True):
     duration_seconds: float = Field(gt=0)
     wpm: float
     accuracy: float
+    correct_chars: int
     incorrect_chars: int
     missed_chars: int
     created_at: datetime = Field(
