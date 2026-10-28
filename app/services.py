@@ -1,7 +1,7 @@
 import secrets
 from dataclasses import dataclass
 from sqlmodel import Session, select
-from app.models import Language, Text, TypingSession
+from app.models import Language, Text, TypingSession, User
 
 @dataclass(frozen=True)
 class TypingResult:
@@ -89,4 +89,40 @@ def get_language_stats(
         'best_wpm': round(max(s.wpm for s in sessions), 2),
         'average_accuracy': round(sum(s.accuracy for s in sessions) / len(sessions), 2),
         'total_practice_seconds': round(sum(s.duration_seconds for s in sessions), 2),
+    }
+
+
+def get_user_language_stats(
+        session: Session,
+        user: User,
+        language: Language,
+) -> dict:
+    sessions = session.exec(
+        select(TypingSession).where(
+            TypingSession.user_id == user.id,
+            TypingSession.language == language,
+        )
+    ).all()
+
+    if not sessions:
+        return {
+            'language': language,
+            'total_sessions': 0,
+            'average_wpm': 0.0,
+            'best_wpm': 0.0,
+            'average_accuracy': 0.0,
+            'total_practice_seconds': 0.0,
+        }
+
+    return {
+        'language': language,
+        'total_average': len(sessions),
+        'average_wpm': round(sum(s.wpm for s in sessions) / len(sessions), 2),
+        'best_wpm': round(max(s.wpm for s in sessions), 2),
+        'average_accuracy': round(
+            sum(s.accuracy for s in sessions) / len(sessions), 2
+        ),
+        'total_practice_seconds': round(
+            sum(s.duration_seconds for s in sessions), 2
+        )
     }
