@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from app.models import Language
 
 
@@ -52,4 +52,31 @@ class StatsRead(BaseModel):
     best_wpm: float
     average_accuracy: float
     total_practice_seconds: float
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    username: str = Field(min_length=3, max_length=50)
+    password: str = Field(min_length=8, max_length=128)
+
+
+class UserRead(BaseModel):
+    id: int
+    email: EmailStr
+    username: str
+    is_active: bool
+    created_at: datetime
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class TextImportResult(BaseModel):
+    created_text: int
+    skipped_lines: int
+    language: Language
+    source_filename: str
+    
     

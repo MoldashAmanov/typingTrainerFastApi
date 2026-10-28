@@ -7,11 +7,26 @@ class Language(str, Enum):
     russian = 'ru'
 
 
+class User(SQLModel, table=True):
+    id: str | None = Field(default=None, primary_key=True)
+    email: str = Field(unique=True, index=True)
+    username: str = Field(unique=True, index=True)
+    is_active: bool = True
+    hashed_password: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 class Text(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    owner_id: int | None = Field(
+        default=None,
+        foreign_key='user.id',
+        index=True,
+    )
     language: Language = Field(index=True)
     content: str
     difficulty: int = Field(default=1, ge=1, le=5)
+    source: str = Field(default='manual')
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
@@ -19,6 +34,7 @@ class Text(SQLModel, table=True):
 
 class TypingSession(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key='user.id', index=True)
     text_id: int = Field(foreign_key='text.id', index=True)
     language: Language = Field(index=True)
 

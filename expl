@@ -1,6 +1,10 @@
 get_session - каждый запрос получает собственную сессию БД, 
 а после ответа она закрывается.
 
+ВАЖНО: SECRET_KEY нельзя коммитить в гит. В реальном проекте выносить
+его в .env:
+SECRET_KEY=change-this-to-a-long-random-value
+DATABASE_URL=sqlite:///./typing_trainer.db
 
 ==== models.py ====
 
@@ -9,3 +13,4 @@ TypingSession - завершенная попытка пользователя
 wpm - слов в минуту
 accuracy - точность в процентах
 correct_chars, incorrect_chars, missed_chars - детализация ошибок
+
