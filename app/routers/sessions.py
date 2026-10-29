@@ -9,7 +9,7 @@ from app.services import compare_texts, get_language_stats
 router = APIRouter(prefix='/sessions', tags=['Sessions'])
 
 @router.post('/', response_model=SessionRead, status_code=status.HTTP_201_CREATED)
-async def create_typing_session(
+def create_typing_session(
     payload: SessionCreate,
     session: Session = Depends(get_session),
 ) -> TypingSession:
@@ -43,7 +43,7 @@ async def create_typing_session(
 
 
 @router.get('/', response_model=list[SessionRead])
-async def list_typing_sessions(
+def list_typing_sessions(
     language: Language | None = None,
     limit: int = 20,
     session: Session = Depends(get_session),
@@ -61,7 +61,7 @@ async def list_typing_sessions(
 
 
 @router.get('/stats', response_model=StatsRead)
-async def get_stats(
+def get_stats(
     language: Language,
     session: Session = Depends(get_session),
 ) -> dict:
