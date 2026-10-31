@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Импорт текстов - Тренажер слепого ввода{% endblock %}
+
+{% block content %}
+<section class="card form-card">
+    <h1>Загрузить тексты из файла</h1>
+
+    <p class="form-hint">
+        Загрузите UTF-8 файл <code>.txt</code> или <code>.md</code>
+        Каждая непустая строка станет отдельным текстом для практики
+    </p>
+
+    <form 
+    action="/texts/import"
+    method="post"
+    enctype="multipart/form-data"
+    class="form"
+    >
+    <label for="language">Язык</label>
+
+    <select id="language" name="language" required>
+        <option value="en">English</option>
+        <option value="ru">Русский</option>
+    </select>
+
+    <label for="difficulty">Сложность</label>
+    <select id="difficulty" name="difficulty">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+    </select>
+
+    <label for="file">Файл с текстами</label>
+    <input id="file" name="file" type="file" accept=".txt, .md" required>
+    <button type="submit" class="button">Импортировать </button>
+    </form>
+</section>
+{% endblock %}

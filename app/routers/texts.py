@@ -1,8 +1,9 @@
 from fastapi import (
     APIRouter, Depends, 
     HTTPException, Query, status,
-    File, UploadFile,
+    File, UploadFile, Form
 )
+import secrets
 from sqlmodel import Session, select
 from app.database import get_session
 from app.models import Language, Text, User
@@ -45,8 +46,8 @@ def create_text(
         response_model=TextImportResult,
         status_code=status.HTTP_201_CREATED,)
 async def import_texts_from_file(
-    language: Language,
-    difficulty: int = Query(default=1, ge=1, le=5),
+    language: Language = Form(...),                              # ← Form
+    difficulty: int = Form(default=1, ge=1, le=5), 
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
@@ -107,11 +108,11 @@ async def import_texts_from_file(
 
 
 @router.get('/random', response_model=TextRead)
-def get_random_pracice_text(
+def get_random_practice_text(
     language: Language,
     difficulty: int | None = Query(default=None, ge=1, le=5),
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session,)
+    session: Session = Depends(get_session),
 ) -> Text:
     statement = select(Text).where(Text.language == language)
 
@@ -130,8 +131,6 @@ def get_random_pracice_text(
             detail="Нет доступных текстов",
         )
 
-    import secrets
-    
     return secrets.choice(texts)  
 
 
@@ -147,22 +146,6 @@ def list_texts(
         statement = statement.where(Text.language == language)
 
     return list(session.exec(statement).all())
-
-
-@router.get('/random', response_model=TextRead)
-def get_random_practice_text(
-    language: Language,
-    difficulty: int | None = Query(default=None, ge=1, le=5),
-    session: Session = Depends(get_session),
-) -> Text:
-    text = get_random_text(session, language, difficulty)
-
-    if text is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Не найдено ни одного текста для этого языка и сложности")
-
-    return text
 
 
 @router.delete('/{text_id}', status_code=status.HTTP_204_NO_CONTENT)

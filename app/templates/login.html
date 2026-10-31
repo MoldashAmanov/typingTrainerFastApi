@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Вход - Тренажер слепого ввода{% endblock %}
+
+{% block content %}
+<section class="card form-card">
+    <h1>Вход</h1>
+
+    <form action="/auth/token" method="post" class="form">
+        <label for="username">Имя пользователя</label> 
+        <input id="username" name="username" type="text" required>
+
+        <label for="password">Пароль</label>
+        <input id="password" name="password" type="password" required>
+
+        <button type="submit" class="button">Войти</button>
+    </form>
+
+    <p class="form-hint">
+        Нет аккаунта?
+        <a href="/register">Зарегистрироваться</a>
+    </p>
+</section>
+{% endblock %}

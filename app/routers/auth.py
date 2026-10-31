@@ -1,5 +1,6 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 from app.config import ACCESS_TOKEN_EXPIRE_MINUTES
@@ -13,63 +14,99 @@ from app.security import create_access_token, hash_password, verify_password
 router = APIRouter(prefix='/auth', tags=['Auth'])
 
 
-@router.post('/register', response_model=UserRead, status_code=status.HTTP_201_CREATED,)
+@router.post(
+    '/register',
+    response_model=UserRead,
+    status_code=status.HTTP_201_CREATED,
+)
 def register(
-    payload: UserCreate,
+    email: str = Form(...),
+    username: str = Form(...),
+    password: str = Form(...),
     session: Session = Depends(get_session),
 ) -> User:
-    existing_email = session.exec(
-        select(User).where(User.email == payload.email)
+    # Валидируем через Pydantic-схему — сохраняем единый источник правды
+    payload = UserCreate(email=email, username=username, password=password)
+
+    # Одна проверка на оба конфликта (email или username)
+    conflict = session.exec(
+        select(User).where(
+            (User.email == payload.email)
+            | (User.username == payload.username)
+        )
     ).first()
 
-    if existing_email:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Такой email уже есть")
-
-    existing_username = session.exec(
-        select(User).where(User.username == payload.username)
-    ).first()
-
-    if existing_username:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Пользователь уже зарегестрирован")
+    if conflict:
+        # Даём точное сообщение в зависимости от того, что совпало
+        if conflict.email == payload.email:
+            detail = "Такой email уже есть"
+        else:
+            detail = "Пользователь с таким именем уже зарегистрирован"
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=detail,
+        )
 
     user = User(
         email=payload.email,
         username=payload.username,
-        hashed_password=hash_password(payload.password)
+        hashed_password=hash_password(payload.password),
     )
 
     session.add(user)
     session.commit()
     session.refresh(user)
 
-    return user
+    # Автологин: выдаём токен и кладём в cookie
+    access_token = create_access_token(
+        subject=str(user.id),
+        expires_minutes=ACCESS_TOKEN_EXPIRE_MINUTES,
+    )
+    response = RedirectResponse(url='/', status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(
+        'access_token',
+        access_token,
+        httponly=True,
+        samesite='lax',
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    return response
 
 
-@router.post('/token', response_model=Token)
+@router.post('/token', status_code=status.HTTP_303_SEE_OTHER)
 def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    username: str = Form(...),
+    password: str = Form(...),
     session: Session = Depends(get_session),
-) -> Token:
+):
     user = session.exec(
-        select(User).where(User.username == form_data.username)
+        select(User).where(User.username == username)
     ).first()
 
-    if user is None or not verify_password(
-        form_data.password,
-        user.hashed_password,
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неправильный пароль или имя пользователя",
-            headers={"WWW-Authenticate": "Bearer"},
+    if user is None or not verify_password(password, user.hashed_password):
+        # Ошибка → обратно на страницу логина с флагом
+        return RedirectResponse(
+            url='/login?error=1',
+            status_code=status.HTTP_303_SEE_OTHER,
         )
 
     access_token = create_access_token(
         subject=str(user.id),
-        expires_minutes=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES).seconds // 60,
+        expires_minutes=ACCESS_TOKEN_EXPIRE_MINUTES,
     )
 
-    return Token(access_token=access_token)
+    response = RedirectResponse(
+        url='/',
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
+    response.set_cookie(
+        'access_token',
+        access_token,
+        httponly=True,
+        samesite='lax',
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    return response
 
 
 @router.get('/me', response_model=UserRead)

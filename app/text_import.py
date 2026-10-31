@@ -10,7 +10,7 @@ class ParsedTextFile:
 
 def parse_text_file(content: str) -> ParsedTextFile:
     texts: list[str] = []
-    skipped: 0
+    skipped: int = 0
 
     for raw_line in content.splitlines():
         line = raw_line.strip()

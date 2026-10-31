@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Практика - Тренажер слепого ввода{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="toolbar">
+        <label for="language">Язык</label>
+
+        <select id="language">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+        </select>
+
+        <label for="difficulty">Сложность</label>
+        <select id="difficulty">
+            <option value="">Любая</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+
+        <button id="load-text" class="button">Новый текст</button>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Текст</h2>
+    <div id="practice-text" class="practice-text">
+        Выберите язык и нажмите "Новый текст"
+    </div>
+</section>
+
+<section class="card">
+    <label for="typing-input" class="visually-hidden">Поле ввода</label>
+
+    <textarea
+    id="typing-input"
+    placeholder="Начните печатать здесь..."
+    disabled
+    ></textarea>
+
+    <div class="stats-grid">
+        <div class="stat">
+            <span>WPM</span>
+            <strong id="wpm">0</strong>
+        </div>
+
+        <div class="stat">
+            <span>Точность</span>
+            <strong id="accuracy">0%</strong>
+        </div>
+
+        <div class="stat">
+            <span>Время</span>
+            <strong id="time">0 с</strong>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button id="finish-session" class="button" disabled>
+            Завершить тренировку
+        </button>
+    </div>
+
+    <p id="practice-message" class="message"></p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/practice.js"></script>
+{% endblock %}

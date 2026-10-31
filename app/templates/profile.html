@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль - Тренажер слепого ввода{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h1>Профиль</h1>
+
+    <dl class="profile-grid">
+        <div>
+            <dt>Имя пользователя</dt>
+            <dd>{{ current_user.username }}</dd>
+        </div>
+
+        <div>
+            <dt>Email</dt>
+            <dd>{{ current_user.email }}</dd>
+        </div>
+
+        <div>
+            <dt>Дата регистрации</dt>
+            <dd>{{ current_user.created_at.strftime("%d.%m.%Y") }}</dd>
+        </div>
+    </dl>
+</section>
+
+<section class="card">
+    <h2>Статистика</h2>
+    <div class="stats-grid">
+        <div class="stat">
+            <span>Тренировок</span>
+            <strong>{{ stats.total_sessions }}</strong>
+        </div>
+
+        <div class="stat">
+            <span>Средний WPM</span>
+            <strong>{{ stats.average_wpm }}</strong>
+        </div>
+
+        <div class="stat">
+            <span>Лучший WPM</span>
+            <strong>{{ stats.best_wpm }}</strong>
+        </div>
+
+        <div class="stat">
+            <span>Время практики</span>
+            <strong>{{ stats.total_practice_seconds }} c</strong>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Последние тренировки</h2>
+
+    {% if sessions %}
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Язык</th>
+                <th>WPM</th>
+                <th>Точность</th>
+                <th>Время</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ session.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>{{ session.language.value }}</td>
+                <td>{{ session.wpm }}</td>
+                <td>{{ session.accuracy }}</td>
+                <td>{{ session.duration_seconds }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Пока нет завершенных тренировок</p>
+    {% endif %}
+</section>
+{% endblock %}

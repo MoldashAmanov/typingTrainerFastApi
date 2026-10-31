@@ -8,7 +8,7 @@ class Language(str, Enum):
 
 
 class User(SQLModel, table=True):
-    id: str | None = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     email: str = Field(unique=True, index=True)
     username: str = Field(unique=True, index=True)
     is_active: bool = True

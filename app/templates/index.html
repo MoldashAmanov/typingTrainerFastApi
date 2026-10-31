@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Тренажер слепого ввода{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Тренируйте слепой ввод</h1>
+    <p>
+        Практика печати свободного текста на английском и русском языках.
+        Отслеживайте скорость, точность и прогресс.
+    </p>
+
+    <div class="actions">
+        {% if current_user %}
+        <a href="/practice" class="button">Начать тренировку</a>
+        <a href="/texts/import" class="button secondary">Загрузить тексты</a>
+        {% else %}
+        <a href="/register" class="button">Создать аккаунт</a>
+        <a href="/login" class="button secondary">Войти</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="features">
+    <article class="feature">
+        <h2>Два языка</h2>
+        <p>Английский и русский тексты для практики</p>
+    </article>
+    <article class="feature">
+        <h2>Метрики</h2>
+        <p>WPM, точность, правильные и пропущенные символы</p>
+    </article>
+    <article class="feature">
+        <h2>Личный прогресс</h2>
+        <p>История тренировок и статистика по каждому языку</p>
+    </article>
+</section>
+{% endblock %}
