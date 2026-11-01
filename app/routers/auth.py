@@ -1,6 +1,6 @@
 from datetime import timedelta
 from fastapi.responses import RedirectResponse
-from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 from app.config import ACCESS_TOKEN_EXPIRE_MINUTES
@@ -25,10 +25,8 @@ def register(
     password: str = Form(...),
     session: Session = Depends(get_session),
 ) -> User:
-    # Валидируем через Pydantic-схему — сохраняем единый источник правды
     payload = UserCreate(email=email, username=username, password=password)
 
-    # Одна проверка на оба конфликта (email или username)
     conflict = session.exec(
         select(User).where(
             (User.email == payload.email)
@@ -37,7 +35,6 @@ def register(
     ).first()
 
     if conflict:
-        # Даём точное сообщение в зависимости от того, что совпало
         if conflict.email == payload.email:
             detail = "Такой email уже есть"
         else:
@@ -57,7 +54,6 @@ def register(
     session.commit()
     session.refresh(user)
 
-    # Автологин: выдаём токен и кладём в cookie
     access_token = create_access_token(
         subject=str(user.id),
         expires_minutes=ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -105,6 +101,18 @@ def login(
         httponly=True,
         samesite='lax',
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    return response
+
+
+@router.post('/logout')
+def logout() -> RedirectResponse:
+    response = RedirectResponse(url='/', status_code=status.HTTP_303_SEE_OTHER)
+    response.delete_cookie(
+        key='access_token',
+        path='/',
+        httponly=True,
+        samesite='lax',
     )
     return response
 
